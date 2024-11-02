@@ -81,23 +81,38 @@ async function startDEVICE(idevice) {
             })
         }
         if (connection === 'close') {
-            sessionMap.delete(parseInt(idevice))
+            const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
+            console.log(`Connection closed for device ${idevice}, reason: ${reason}`);
+
             const logoutsessi = () => {
                 chika.logout();
                 if (fs.existsSync(`./app_node/session/device-${idevice}.json`)) {
                     fs.unlinkSync(`./app_node/session/device-${idevice}.json`);
                 }
+                sessionMap.delete(parseInt(idevice));  // Hapus session hanya di sini
+            };
+
+            if (reason === DisconnectReason.badSession || reason === DisconnectReason.loggedOut) {
+                console.log(`Bad session or logged out for device ${idevice}. Requires new QR scan.`);
+                logoutsessi(); // Hapus sesi dan file jika sesi tidak valid atau logout
+            } else if (
+                reason === DisconnectReason.connectionClosed ||
+                reason === DisconnectReason.connectionLost ||
+                reason === DisconnectReason.restartRequired ||
+                reason === DisconnectReason.timedOut
+            ) {
+                // Coba reconnect otomatis tanpa menghapus sesi
+                console.log(`Attempting to reconnect for device ${idevice}...`);
+                setTimeout(() => startDEVICE(idevice), 5000); // Reconnect setelah 5 detik
+            } else if (reason === DisconnectReason.connectionReplaced) {
+                console.log("Connection replaced by another session, logging out...");
+                logoutsessi(); // Logout jika ada koneksi lain yang menggantikan
+            } else {
+                console.log(`Unknown disconnect reason for device ${idevice}. Attempting reconnect as fallback.`);
+                setTimeout(() => startDEVICE(idevice), 5000); // Reconnect sebagai fallback jika alasan tidak dikenal
             }
-            let reason = new Boom(lastDisconnect?.error)?.output.statusCode
-            if (reason === DisconnectReason.badSession) { console.log(`Bad Session File, Please Delete Session and Scan Again`); logoutsessi(); }
-            else if (reason === DisconnectReason.connectionClosed) { console.log("Connection closed, reconnecting...."); startDEVICE(idevice); }
-            else if (reason === DisconnectReason.connectionLost) { console.log("Connection Lost from Server, reconnecting..."); startDEVICE(idevice); }
-            else if (reason === DisconnectReason.connectionReplaced) { console.log("Connection Replaced, Another New Session Opened, Please Close Current Session First"); logoutsessi(); }
-            else if (reason === DisconnectReason.loggedOut) { console.log(`Device Logged Out, Please Scan Again And Run.`); logoutsessi(); }
-            else if (reason === DisconnectReason.restartRequired) { console.log("Restart Required, Restarting..."); startDEVICE(idevice) }
-            else if (reason === DisconnectReason.timedOut) { console.log("Connection TimedOut, Reconnecting..."); startDEVICE(idevice); }
-            else chika.end(`Unknown DisconnectReason: ${reason}|${connection}`)
         }
+
         if (update.qr) {
             const url = await toDataURL(qr)
             try {
