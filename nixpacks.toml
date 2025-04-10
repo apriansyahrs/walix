@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = [
+  "php74.withExtensions (pe: pe.enabled ++ [ pe.pdo pe.pdo_mysql ])",
+  "php74Packages.composer",
+  "nginx",
+  "nodejs_18",
+  "npm-9_x"
+]
+
+[phases.install]
+cmds = ["composer install"]
+
+[start]
+cmd = "php -S 0.0.0.0:3000 -t public"
