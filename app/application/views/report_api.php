@@ -79,11 +79,6 @@
                                                             <th>Device</th>
                                                             <th>Receiver</th>
                                                             <th>Message</th>
-                                                            <th>Media</th>
-                                                            <th>Footer</th>
-                                                            <th>Button 1</th>
-                                                            <th>Button 2</th>
-                                                            <th>Button 3</th>
                                                             <th>Status</th>
                                                             <th>Time</th>
                                                         </tr>
@@ -95,11 +90,6 @@
                                                                 <td><?= $d->nomor ?></td>
                                                                 <td><?= $d->receiver ?></td>
                                                                 <td><?= $d->message ?></td>
-                                                                <td><?= ($d->media == '') ? '<button class="btn btn-dark btn-sm" disabled>None</button>' : '<button type="button" class="btn btn-primary btn-sm" onclick="lihat_gambar(`' . $d->media . '`)">Lihat</button>' ?></td>
-                                                                <td><?= $d->footer ?></td>
-                                                                <td><?= $d->btn1 ?></td>
-                                                                <td><?= $d->btn2 ?></td>
-                                                                <td><?= $d->btn3 ?></td>
                                                                 <td><?= ($d->status == 'Failed') ? '<span class="badge badge-style-light rounded-pill badge-danger">Failed</span>' : '<span class="badge badge-style-light rounded-pill badge-success">Sent</span>' ?></td>
                                                                 <td><small><?= $d->created_at ?></small></td>
                                                             </tr>
